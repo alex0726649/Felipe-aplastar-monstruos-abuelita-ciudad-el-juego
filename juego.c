@@ -3,6 +3,7 @@
 int main(int argc, const char *argv[]){
     int a;
     printf("FELIPE ES EL PATRON Y APLASTA ABUELITAS"); scanf(" %i", a);
+    printf("polla");
     return 0;
 }
 
