@@ -1,7 +1,8 @@
 #include <stdio.h>
 
 int main(int argc, const char *argv[]){
-    printf("FELIPE ES EL PATRON Y APLASTA ABUELITAS");
+    int a;
+    printf("FELIPE ES EL PATRON Y APLASTA ABUELITAS"); scanf(" %i", a);
     return 0;
 }
 
