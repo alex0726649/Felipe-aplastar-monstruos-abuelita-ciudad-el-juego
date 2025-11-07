@@ -7,6 +7,7 @@ int main(int argc, const char *argv[]){
     int a;
     printf("FELIPE ES EL PATRON Y APLASTA ABUELITAS"); scanf(" %i", &a);
     printf("polla");
+    printf("\n%i", a);
     system("pause");
     return 0;
 }
