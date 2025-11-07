@@ -9,6 +9,7 @@ int main(int argc, const char *argv[]){
     return 0;
 }
 
+int pelas(int vida, int xp, int ps);
 
 
 
