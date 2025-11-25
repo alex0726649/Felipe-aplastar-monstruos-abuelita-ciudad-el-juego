@@ -1,0 +1,6 @@
+Goblin|20|5
+Esqueleto|30|8
+Ogro|50|12
+Bruja|40|10
+Gárgola|60|14
+Felipe-Tecnico|120|25

@@ -1,0 +1,15 @@
+Espada,15,0,999,0.10,Ataque basico
+Hacha,25,30,50,0.15,Daño alto
+Daga,12,20,100,0.30,Critico alto
+Martillo,30,50,30,0.05,Aplastante
+Arco,18,25,80,0.20,Ataque a distancia
+Lanza,20,35,60,0.12,Alcance medio
+Katana,28,60,40,0.25,Corte veloz
+Baculo,10,40,999,0.08,Ataque magico
+Ballesta,22,45,50,0.18,Precision
+Mandoble,35,80,25,0.10,Daño devastador
+Puños,8,0,999,0.05,Sin arma
+Espada Flamigera,40,100,20,0.20,Quema al enemigo
+Lanza de Hielo,35,90,25,0.18,Congela
+Daga Venenosa,20,50,60,0.35,Envenena
+Hacha de Guerra,45,120,15,0.12,Rompe armadura
