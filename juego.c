@@ -258,10 +258,21 @@ Personaje crearPersonajeInicial(void) {
 
     printf("\n" BOLD "=== CREACION DE PERSONAJE ===" RESET "\n\n");
     printf("Nombre del personaje: ");
-    fgets(p.nombre, MAX_NOMBRE, stdin);
-    p.nombre[strcspn(p.nombre, "\n")] = 0;
-    if (strlen(p.nombre) == 0) {
-        strcpy(p.nombre, "SinNombre");
+    int nombre_valido = 0;
+    while (!nombre_valido) {
+        fgets(p.nombre, MAX_NOMBRE, stdin);
+        p.nombre[strcspn(p.nombre, "\n")] = 0;
+        
+        int len = strlen(p.nombre);
+        
+        if (len == 0) {
+            strcpy(p.nombre, "SinNombre");
+            nombre_valido = 1;
+        } else if (len > 20) {
+            printf(ROJO "Nombre muy largo. Maximo 20 caracteres: " RESET);
+        } else {
+            nombre_valido = 1;
+        }
     }
 
     p.vida_max = 100;
@@ -1101,8 +1112,15 @@ void menu_inventario(Personaje *p) {
         printf("5. Salir del inventario\n");
         printf("Opcion: ");
 
-        scanf("%d", &opcion);
-        getchar();
+        int entrada_valida = 0;
+        while (!entrada_valida) {
+            if (scanf("%d", &opcion) == 1 && opcion >= 1 && opcion <= 5) {
+                entrada_valida = 1;
+            } else {
+                printf(ROJO "Opcion invalida. Elige 1-5: " RESET);
+            }
+            while(getchar() != '\n'); 
+        }
 
         if (opcion == 1) {
             if (i_inv == 0) {
