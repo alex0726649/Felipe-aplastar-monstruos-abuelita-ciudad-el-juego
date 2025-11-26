@@ -1,56 +1,56 @@
-DUENDE
+Duende
   /\_/\
  ( o.o )
   > ^ 
 ---
-LOBO
+Lobo
   /\_/\
  ( O.O )
   >|||
 ---
-BRUJA
+Bruja
   _||_
  (o_o)
   /^\
 ---
-ARAÑA
+Araña
  \o.o/
 <(: :)>
  /\ /\
 ---
-OGRO
+Ogro
   @@@
  (O_O)
   |H|
 ---
-ESQUELETO
+Esqueleto
   .__.
  ( °° )
   |  |
 ---
-GOLEM
+Golem
 [####]
 [O  O]
 [====]
 ---
-DRAGON
+Dragon
   /\^/\
  < O O >
   |===|
 ---
-FELIPE
+Felipe
 (̿▀̿ ̿Ĺ̯▀̿ ̿)̄
   |#|
 ---
-OSVALDO
+Osvaldo
 ┬┴┬┴┤ʖ ͡°)
   |$|
 ---
-INGE
+Inge
 ¯\_(ツ)_/¯
   PhD
 ---
-GIGANTE
+Gigante
 ╔═══╗
 ║O O║
 ║___║
