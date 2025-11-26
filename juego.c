@@ -92,7 +92,8 @@ typedef struct {
     NodoArmaInventario *inventario_armas; // todas las armas que posee
 
     Amuleto amuleto;
-    int tiene_amuleto;
+    int tiene_amuleto;      // 1 = ya existe un amuleto
+    int amuleto_equipado;   // 1 = el amuleto está activo
 
     int danio_temporal;
     float critico_temporal;
@@ -171,6 +172,7 @@ void bucle_juego_recursivo(Personaje *p, PilaEnemigos *pila, TablaHashArmas *th)
 void combate(Personaje *p, Enemigo *enemigo);
 void tienda(Personaje *p, TablaHashArmas *th);
 void menu_inventario(Personaje *p);
+void quitar_amuleto(Personaje *p);
 
 /* Dano recursivo */
 int calcular_danio_recursivo(int danio_base, int profundidad);
@@ -235,14 +237,16 @@ int rand_entre(int min, int max) {
 void mostrar_titulo() {
     FILE *f = fopen("titulo.txt", "r");
     if (!f) {
-        printf(CYAN BOLD "=== ABISMO DE LAS PESADILLAS ===" RESET "\n");
+        printf(AZUL BOLD "=== ABISMO DE LAS PESADILLAS ===" RESET "\n");
         return;
     }
 
+    printf(AZUL);  // todo el titulo en azul
     char linea[256];
     while (fgets(linea, sizeof(linea), f)) {
         printf("%s", linea);
     }
+    printf(RESET);
     fclose(f);
 }
 
@@ -285,9 +289,22 @@ void mostrarPersonaje(Personaje *p) {
 
 void mostrar_game_over(Personaje *p) {
     limpiar_pantalla();
-    printf(ROJO BOLD "=====================================\n");
-    printf("              GAME OVER\n");
-    printf("=====================================\n" RESET);
+
+    FILE *f = fopen("game_over.txt", "r");
+    if (f) {
+        printf(ROJO);
+        char linea[256];
+        while (fgets(linea, sizeof(linea), f)) {
+            printf("%s", linea);
+        }
+        printf(RESET "\n");
+        fclose(f);
+    } else {
+        printf(ROJO BOLD "=====================================\n");
+        printf("              GAME OVER\n");
+        printf("=====================================\n" RESET);
+    }
+
     printf("\nCaíste en el abismo...\n\n");
     printf("Personaje: %s\n", p->nombre);
     printf("Piso alcanzado: %d\n", p->nivel_piso);
@@ -304,8 +321,6 @@ void mostrar_game_over(Personaje *p) {
 /* ==================== INICIALIZACION DEL JUEGO ==================== */
 
 void inicializar_juego(Personaje *p, TablaHashArmas *th, PilaEnemigos *pila) {
-    /* NO tocamos vida/oro/piso/fuerza aqui, eso se definio al crear el personaje */
-
     p->armas_equipadas = NULL;
     p->num_armas_equipadas = 0;
     p->arma_actual = NULL;
@@ -313,6 +328,7 @@ void inicializar_juego(Personaje *p, TablaHashArmas *th, PilaEnemigos *pila) {
     p->inventario_armas = NULL;
 
     p->tiene_amuleto = 0;
+    p->amuleto_equipado = 0;
     p->amuleto.bonus_danio = 0;
     strcpy(p->amuleto.nombre, "Sin amuleto");
     strcpy(p->amuleto.efecto, "Ninguno");
@@ -330,7 +346,7 @@ void inicializar_juego(Personaje *p, TablaHashArmas *th, PilaEnemigos *pila) {
     /* Equipa armas basicas si existen */
     {
         Arma *espada = buscar_arma_hash(th, "Espada");
-        Arma *punos = buscar_arma_hash(th, "Punos");
+        Arma *punos  = buscar_arma_hash(th, "Punos");
         if (punos) {
             agregar_arma_inventario(p, *punos);
         }
@@ -597,8 +613,8 @@ void generar_enemigos_iniciales(PilaEnemigos *pila,
         enemigo.es_boss = ((piso % 10) == 0);
         enemigo.es_miniboss = (!enemigo.es_boss && (piso % 3) == 0);
 
-        int vida_base = 18 + piso * 4 + rand_entre(0, piso * 2);
-        int fuerza_base = 4 + piso * 2 + rand_entre(0, piso);
+        int vida_base   = 18 + piso * 4 + rand_entre(0, piso * 2);
+        int fuerza_base = 4  + piso * 2 + rand_entre(0, piso);
 
         if (enemigo.es_miniboss) {
             vida_base += 20;
@@ -658,7 +674,8 @@ void bucle_juego_recursivo(Personaje *p, PilaEnemigos *pila, TablaHashArmas *th)
 
     combate(p, &enemigo);
 
-    if (p->vida > 0) {
+    if (p->vida > 0 && enemigo.vida <= 0) {
+        /* solo si el enemigo murio ganas oro y loot */
         p->oro += enemigo.oro_drop;
         printf("\n" VERDE "Victoria! Ganaste %d de oro.\n" RESET, enemigo.oro_drop);
 
@@ -675,19 +692,24 @@ void bucle_juego_recursivo(Personaje *p, PilaEnemigos *pila, TablaHashArmas *th)
                    nuevo_amuleto.efecto, nuevo_amuleto.bonus_danio);
 
             if (p->tiene_amuleto) {
-                printf("Reemplazar amuleto actual? (s/n): ");
+                printf("Ya tienes un amuleto: %s (+%d de dano)\n",
+                       p->amuleto.nombre, p->amuleto.bonus_danio);
+                printf("Quieres reemplazarlo por el nuevo? (s/n): ");
                 char op;
                 scanf(" %c", &op);
                 getchar();
                 if (op == 's' || op == 'S') {
                     p->amuleto = nuevo_amuleto;
-                    printf(VERDE "Amuleto equipado!\n" RESET);
+                    p->tiene_amuleto = 1;
+                    p->amuleto_equipado = 1;
+                    printf(VERDE "Nuevo amuleto equipado!\n" RESET);
                 } else {
                     printf("Conservas tu amuleto actual.\n");
                 }
             } else {
                 p->amuleto = nuevo_amuleto;
                 p->tiene_amuleto = 1;
+                p->amuleto_equipado = 1;
                 printf(VERDE "Amuleto equipado!\n" RESET);
             }
         }
@@ -703,6 +725,13 @@ void bucle_juego_recursivo(Personaje *p, PilaEnemigos *pila, TablaHashArmas *th)
             }
         }
 
+        p->nivel_piso++;
+        bucle_juego_recursivo(p, pila, th);
+
+    } else if (p->vida > 0 && enemigo.vida > 0) {
+        /* aqui significa que huiste: no hay oro ni loot */
+        printf("\nEscapaste del combate, pero sigues descendiendo...\n");
+        pausar();
         p->nivel_piso++;
         bucle_juego_recursivo(p, pila, th);
     }
@@ -721,7 +750,7 @@ void combate(Personaje *p, Enemigo *enemigo) {
     while (p->vida > 0 && enemigo->vida > 0) {
         limpiar_pantalla();
 
-        /* daño por veneno al inicio del turno */
+        /* dano por veneno al inicio del turno */
         if (p->veneno_turnos > 0) {
             int dano_ven = 3;
             p->vida -= dano_ven;
@@ -772,7 +801,7 @@ void combate(Personaje *p, Enemigo *enemigo) {
             int danio_total = calcular_danio_recursivo(danio_base, 2);
             danio_total += p->danio_temporal;
 
-            if (p->tiene_amuleto)
+            if (p->tiene_amuleto && p->amuleto_equipado)
                 danio_total += p->amuleto.bonus_danio;
 
             /* debuff de la bruja */
@@ -849,7 +878,7 @@ void combate(Personaje *p, Enemigo *enemigo) {
             if (rand_entre(1, 100) <= 50) {
                 printf(AMARILLO "Logras escapar!\n" RESET);
                 pausar();
-                return;
+                return; // huiste: no hay oro ni loot
             } else {
                 printf(ROJO "No pudiste huir.\n" RESET);
                 {
@@ -864,7 +893,7 @@ void combate(Personaje *p, Enemigo *enemigo) {
         }
     }
 
-    if (enemigo->vida <= 0) {
+    if (enemigo->vida <= 0 && p->vida > 0) {
         printf("\n" VERDE "Derrotaste a %s!\n" RESET, enemigo->nombre);
     }
 }
@@ -986,18 +1015,25 @@ void menu_inventario(Personaje *p) {
         }
 
         if (p->tiene_amuleto) {
-            printf("\nAmuleto equipado: %s\n", p->amuleto.nombre);
-            printf("  Efecto: %s (+%d de dano)\n",
-                   p->amuleto.efecto, p->amuleto.bonus_danio);
+            if (p->amuleto_equipado) {
+                printf("\nAmuleto equipado: %s\n", p->amuleto.nombre);
+                printf("  Efecto: %s (+%d de dano)\n",
+                       p->amuleto.efecto, p->amuleto.bonus_danio);
+            } else {
+                printf("\nAmuleto en mochila (NO equipado): %s\n", p->amuleto.nombre);
+                printf("  Efecto: %s (+%d de dano)\n",
+                       p->amuleto.efecto, p->amuleto.bonus_danio);
+            }
         } else {
-            printf("\nNo tienes amuleto equipado.\n");
+            printf("\nNo tienes amuleto.\n");
         }
 
         printf("\nOpciones:\n");
         printf("1. Equipar arma de la mochila\n");
         printf("2. Desequipar arma\n");
         printf("3. Ver arma actual\n");
-        printf("4. Salir del inventario\n");
+        printf("4. Equipar / desequipar amuleto\n");
+        printf("5. Salir del inventario\n");
         printf("Opcion: ");
 
         scanf("%d", &opcion);
@@ -1053,13 +1089,64 @@ void menu_inventario(Personaje *p) {
         } else if (opcion == 3) {
             mostrar_arma_actual(p);
             pausar();
+
         } else if (opcion == 4) {
+            quitar_amuleto(p);
+
+        } else if (opcion == 5) {
             break;
+
         } else {
             printf("Opcion invalida.\n");
             pausar();
         }
     }
+}
+
+/* ==================== AMULETO ==================== */
+
+void quitar_amuleto(Personaje *p) {
+    if (!p->tiene_amuleto) {
+        printf("No tienes ningun amuleto.\n");
+        pausar();
+        return;
+    }
+
+    if (p->amuleto_equipado) {
+        printf("\nAmuleto actual: %s\n", p->amuleto.nombre);
+        printf("Efecto: %s (+%d de dano)\n",
+               p->amuleto.efecto, p->amuleto.bonus_danio);
+        printf("Quieres DESEQUIPAR este amuleto? (s/n): ");
+
+        char c;
+        scanf(" %c", &c);
+        getchar();
+
+        if (c == 's' || c == 'S') {
+            p->amuleto_equipado = 0;  // se guarda, pero no da bono
+            printf(AMARILLO "Has desequipado tu amuleto. Sigue en tu mochila.\n" RESET);
+        } else {
+            printf("Mantienes el amuleto equipado.\n");
+        }
+    } else {
+        printf("\nTienes este amuleto en tu mochila: %s\n", p->amuleto.nombre);
+        printf("Efecto: %s (+%d de dano)\n",
+               p->amuleto.efecto, p->amuleto.bonus_danio);
+        printf("Quieres EQUIPAR este amuleto? (s/n): ");
+
+        char c;
+        scanf(" %c", &c);
+        getchar();
+
+        if (c == 's' || c == 'S') {
+            p->amuleto_equipado = 1;
+            printf(VERDE "Has equipado tu amuleto.\n" RESET);
+        } else {
+            printf("Sigues sin amuleto equipado.\n");
+        }
+    }
+
+    pausar();
 }
 
 /* ==================== TIENDA: ARMAS POR NUMERO ==================== */
@@ -1113,9 +1200,10 @@ void mostrar_inventario_hash(TablaHashArmas *th, Personaje *p) {
 
         Arma *pagina_armas[5];
         int count = 0;
+        int k;
 
-        for (i = inicio; i < fin && i < total_armas; i++) {
-            Arma *arma = armas_lista[i];
+        for (k = inicio; k < fin && k < total_armas; k++) {
+            Arma *arma = armas_lista[k];
             pagina_armas[count] = arma;
             printf(CYAN "%d)" RESET " %s - Costo: %d | Dano: %d | Usos: %d | Critico: %.0f%%\n",
                    count + 1, arma->nombre, arma->precio,
