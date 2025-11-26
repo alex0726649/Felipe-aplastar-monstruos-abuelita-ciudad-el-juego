@@ -1,15 +1,13 @@
-Espada,15,0,999,0.10,Ataque basico
-Hacha,25,30,50,0.15,Daño alto
-Daga,12,20,100,0.30,Critico alto
-Martillo,30,50,30,0.05,Aplastante
-Arco,18,25,80,0.20,Ataque a distancia
-Lanza,20,35,60,0.12,Alcance medio
-Katana,28,60,40,0.25,Corte veloz
-Baculo,10,40,999,0.08,Ataque magico
-Ballesta,22,45,50,0.18,Precision
-Mandoble,35,80,25,0.10,Daño devastador
-Puños,8,0,999,0.05,Sin arma
-Espada Flamigera,40,100,20,0.20,Quema al enemigo
-Lanza de Hielo,35,90,25,0.18,Congela
-Daga Venenosa,20,50,60,0.35,Envenena
-Hacha de Guerra,45,120,15,0.12,Rompe armadura
+Punos,6,0,999,0.05,Golpes basicos sin arma
+Espada,14,0,999,0.10,Arma inicial equilibrada
+Daga,10,10,120,0.30,Corta rapido y critico alto
+Arco,13,15,90,0.18,Ataque a distancia estable
+Hacha,20,25,55,0.12,Golpes fuertes pero pesados
+Martillo,24,30,40,0.08,Golpe lento pero solido
+Lanza,18,35,70,0.12,Alcance medio seguro
+Katana,23,45,50,0.25,Cortes rapidos y precisos
+Ballesta,22,55,45,0.20,Disparos precisos
+Mandoble,30,70,30,0.10,Mucho dano en pocos golpes
+Daga Venenosa,17,80,40,0.35,Alta probabilidad de critico
+Espada Flamigera,32,90,30,0.22,Gran dano ofensivo
+Hacha de Guerra,36,110,20,0.15,Arma muy pesada y poderosa
