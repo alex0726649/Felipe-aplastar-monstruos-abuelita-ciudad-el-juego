@@ -1,13 +1,13 @@
 /*
    Programación y Análisis de Algoritmos/ Estructura de datos
    Profesor: Norma Leticia Méndez Mariscal
-   Proyecto final: Abismo de las pesadillas
+   Proyecto final: The Greedy Tower
    Integrantes:
    Osvaldo Hernández Juarez 385493
    Luis Felipe Domínguez Chavez 385500
    Diego Flores Verdad Grijalva 385660
    Armando Velazquez Barroso 254106
-   José Alejandro Pérez Millán
+   José Alejandro Pérez Millán 385570
    26/11/2025 
 */
 
@@ -79,7 +79,7 @@ typedef struct {
     int bonus_danio;
 } Amuleto;
 
-/* Armas que el jugador posee en su inventario (puede tener muchas) */
+// Armas que el jugador posee en su inventario 
 typedef struct NodoArmaInventario {
     Arma arma;
     struct NodoArmaInventario *siguiente;
@@ -104,6 +104,7 @@ typedef struct {
     int tiene_amuleto;      // 1 = ya existe un amuleto
     int amuleto_equipado;   // 1 = el amuleto está activo
 
+    //efectos de pociones
     int danio_temporal;
     float critico_temporal;
 
@@ -113,7 +114,7 @@ typedef struct {
     int debuff_dano_cantidad;
 } Personaje;
 
-typedef struct {
+typedef struct { //tabla hash para almacenar las armas
     Arma *tabla[HASH_SIZE];
 } TablaHashArmas;
 
@@ -122,22 +123,22 @@ typedef struct {
     int cantidad;
 } PilaEnemigos;
 
-/* ==================== VARIABLES GLOBALES ==================== */
+//==================== VARIABLES GLOBALES ==================== 
 
 char ascii_enemigos[12][MAX_ASCII];
 int num_ascii_enemigos = 0;
 
-/* ==================== PROTOTIPOS ==================== */
+// ==================== PROTOTIPOS ==================== 
 
-/* Utilidad */
+// Utilidad 
 void limpiar_pantalla();
 void pausar();
 int rand_entre(int min, int max);
 
-/* Titulo */
+// Titulo
 void mostrar_titulo();
 
-/* Creacion de personaje */
+// Creacion de personaje
 Personaje crearPersonajeInicial(void);
 void mostrarPersonaje(Personaje *p);
 
@@ -173,8 +174,7 @@ void mostrar_arma_actual(Personaje *p);
 void push_enemigo(PilaEnemigos *pila, Enemigo enemigo);
 Enemigo pop_enemigo(PilaEnemigos *pila);
 bool pila_vacia(PilaEnemigos *pila);
-void generar_enemigos_iniciales(PilaEnemigos *pila,
-                                char ascii_array[][MAX_ASCII], int num_ascii);
+void generar_enemigos_iniciales(PilaEnemigos *pila, char ascii_array[][MAX_ASCII], int num_ascii);
 
 /* Juego principal */
 void bucle_juego_recursivo(Personaje *p, PilaEnemigos *pila, TablaHashArmas *th);
@@ -195,6 +195,7 @@ int main() {
     TablaHashArmas tabla_hash;
     PilaEnemigos pila_enemigos;
 
+    //inicializaciones
     memset(&tabla_hash, 0, sizeof(tabla_hash));
     memset(&pila_enemigos, 0, sizeof(pila_enemigos));
 
@@ -330,12 +331,12 @@ void mostrar_game_over(Personaje *p) {
     printf("Piso alcanzado: %d\n", p->nivel_piso);
     printf("Oro obtenido: %d\n", p->oro);
 
-#ifdef _WIN32
-    system("pause");
-#else
-    printf("\nPresiona Enter para salir...");
-    getchar();
-#endif
+    #ifdef _WIN32
+        system("pause");
+    #else
+        printf("\nPresiona Enter para salir...");
+        getchar();
+    #endif
 }
 
 /* ==================== INICIALIZACION DEL JUEGO ==================== */
@@ -367,11 +368,6 @@ void inicializar_juego(Personaje *p, TablaHashArmas *th, PilaEnemigos *pila) {
     {
         Arma *espada = buscar_arma_hash(th, "Espada");
         Arma *punos  = buscar_arma_hash(th, "Punos");
-        if (punos) {
-            Arma copia_punos = *punos;
-            copia_punos.usos = copia_punos.usos_max; // asegurar usos completos
-            agregar_arma_inventario(p, copia_punos);
-        }
         if (espada) {
             Arma copia_espada = *espada;
             copia_espada.usos = copia_espada.usos_max; // asegurar usos completos
@@ -451,7 +447,7 @@ void cargar_ascii_desde_archivo(char ascii_array[][MAX_ASCII], int *num_ascii) {
             }
         }
     }
-
+    //por si no se guardo el ultimo ascii
     if (strlen(buffer) > 0 && *num_ascii < 12) {
         strcpy(ascii_array[*num_ascii], buffer);
         (*num_ascii)++;
@@ -480,7 +476,7 @@ unsigned int hash(char *str) {
 void insertar_arma_hash(TablaHashArmas *th, Arma arma) {
     unsigned int indice = hash(arma.nombre);
     Arma *nueva = (Arma*)malloc(sizeof(Arma));
-    if (!nueva) return;
+    if (!nueva) return; 
     *nueva = arma;
     nueva->siguiente = th->tabla[indice];
     th->tabla[indice] = nueva;
@@ -636,10 +632,8 @@ bool pila_vacia(PilaEnemigos *pila) {
     return pila->tope == NULL;
 }
 
-void generar_enemigos_iniciales(PilaEnemigos *pila,
-                                char ascii_array[][MAX_ASCII], int num_ascii) {
-    char *nombres[] = {"Duende", "Lobo", "Bruja", "Arana", "Ogro", "Esqueleto",
-                       "Golem", "Dragon", "Felipe", "Osvaldo", "Inge", "Gigante"};
+void generar_enemigos_iniciales(PilaEnemigos *pila,char ascii_array[][MAX_ASCII], int num_ascii) {
+    char *nombres[] = {"Duende", "Lobo", "Bruja", "Arana", "Ogro", "Esqueleto","Golem", "Dragon", "Felipe", "Osvaldo", "Inge", "Gigante"};
     int total_nombres = 12;
     int i;
 
