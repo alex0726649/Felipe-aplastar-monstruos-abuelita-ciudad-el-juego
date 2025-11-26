@@ -305,7 +305,7 @@ void mostrar_game_over(Personaje *p) {
         printf("=====================================\n" RESET);
     }
 
-    printf("\nCaíste en el abismo...\n\n");
+    printf("\nCaiste en el abismo...\n\n");
     printf("Personaje: %s\n", p->nombre);
     printf("Piso alcanzado: %d\n", p->nivel_piso);
     printf("Oro obtenido: %d\n", p->oro);
@@ -348,13 +348,19 @@ void inicializar_juego(Personaje *p, TablaHashArmas *th, PilaEnemigos *pila) {
         Arma *espada = buscar_arma_hash(th, "Espada");
         Arma *punos  = buscar_arma_hash(th, "Punos");
         if (punos) {
-            agregar_arma_inventario(p, *punos);
+            Arma copia_punos = *punos;
+            copia_punos.usos = copia_punos.usos_max; // asegurar usos completos
+            agregar_arma_inventario(p, copia_punos);
         }
         if (espada) {
-            agregar_arma_inventario(p, *espada);
-            insertar_arma_equipada(p, *espada);
+            Arma copia_espada = *espada;
+            copia_espada.usos = copia_espada.usos_max; // asegurar usos completos
+            agregar_arma_inventario(p, copia_espada);
+            insertar_arma_equipada(p, copia_espada);
         } else if (punos) {
-            insertar_arma_equipada(p, *punos);
+            Arma copia_punos = *punos;
+            copia_punos.usos = copia_punos.usos_max;
+            insertar_arma_equipada(p, copia_punos);
         }
     }
 
@@ -483,6 +489,16 @@ void agregar_arma_inventario(Personaje *p, Arma arma) {
 /* ==================== LISTA DOBLE CIRCULAR (ARMAS EQUIPADAS) ==================== */
 
 void insertar_arma_equipada(Personaje *p, Arma arma) {
+    if (p->armas_equipadas != NULL) {
+        NodoArmaEquipada *actual = p->armas_equipadas;
+        do {
+            if (strcmp(actual->arma.nombre, arma.nombre) == 0) {
+                printf(AMARILLO "Ya tienes %s equipada.\n" RESET, arma.nombre);
+                return;
+            }
+            actual = actual->siguiente;
+        } while (actual != p->armas_equipadas);
+    }
     NodoArmaEquipada *nuevo = (NodoArmaEquipada*)malloc(sizeof(NodoArmaEquipada));
     if (!nuevo) return;
     nuevo->arma = arma;
@@ -515,6 +531,14 @@ void eliminar_arma_equipada(Personaje *p, char *nombre) {
     NodoArmaEquipada *actual = p->armas_equipadas;
     do {
         if (strcmp(actual->arma.nombre, nombre) == 0) {
+            NodoArmaInventario *inv = p->inventario_armas;
+            while (inv) {
+                if (strcmp(inv->arma.nombre, nombre) == 0) {
+                    inv->arma.usos = actual->arma.usos; // guardar usos actuales
+                    break;
+                }
+                inv = inv->siguiente;
+            }
             if (p->num_armas_equipadas == 1) {
                 free(actual);
                 p->armas_equipadas = NULL;
@@ -655,11 +679,19 @@ void bucle_juego_recursivo(Personaje *p, PilaEnemigos *pila, TablaHashArmas *th)
         printf(AMARILLO "Un mercader ambulante aparece.\n" RESET);
         printf("Hablar con el? (1 = si, 2 = no): ");
         int opTi;
-        scanf("%d", &opTi);
-        getchar();
-        if (opTi == 1) {
-            tienda(p, th);
+        int valido = 0;
+        while (!valido) {
+            if (scanf("%d", &opTi) == 1 && (opTi == 1 || opTi == 2)) {
+            valido = 1;
+        } else {
+            printf(ROJO "Opcion invalida. Elige 1 o 2: " RESET);
         }
+        while(getchar() != '\n'); // limpiar buffer
+    }
+    if (opTi == 1) {
+        tienda(p, th);
+    }
+
     }
 
     Enemigo enemigo = pop_enemigo(pila);
@@ -718,8 +750,15 @@ void bucle_juego_recursivo(Personaje *p, PilaEnemigos *pila, TablaHashArmas *th)
         printf("\nQuieres revisar tu inventario? (1 = si, 2 = no): ");
         {
             int opInv;
-            scanf("%d", &opInv);
-            getchar();
+            int valido = 0;
+            while (!valido) {
+                if (scanf("%d", &opInv) == 1 && (opInv == 1 || opInv == 2)) {
+                    valido = 1;
+                }else{
+                    printf("Teclea 1 o 2: " RESET);
+                }
+                while(getchar() != '\n'); 
+            }
             if (opInv == 1) {
                 menu_inventario(p);
             }
@@ -786,10 +825,25 @@ void combate(Personaje *p, Enemigo *enemigo) {
         printf("Accion: ");
 
         char accion;
-        scanf(" %c", &accion);
-        getchar();
+        int entrada_valida = 0;
+        while (!entrada_valida) {
+            if (scanf(" %c", &accion) == 1) {
+        // Convertir a mayúscula para comparar
+                char accion_upper = (accion >= 'a' && accion <= 'z') ? accion - 32 : accion;
+                if (accion_upper == 'A' || accion_upper == 'S' || 
+                    accion_upper == 'P' || accion_upper == 'H') {
+                    entrada_valida = 1;
+                    accion = accion_upper; // usar la versión mayúscula
+                }else {
+                printf(ROJO "Accion invalida. Usa A, S, P o H: " RESET);
+            }
+        } else {
+            printf(ROJO "Entrada invalida. Usa A, S, P o H: " RESET);
+        }
+        while(getchar() != '\n'); // limpiar buffer
+}
 
-        if (accion == 'A' || accion == 'a') {
+        if (accion == 'A') {
             int danio_base = 5;
             float prob_crit = 0.0f;
 
@@ -866,15 +920,15 @@ void combate(Personaje *p, Enemigo *enemigo) {
 
             pausar();
 
-        } else if (accion == 'S' || accion == 's') {
+        } else if (accion == 'S') {
             ciclar_arma_siguiente(p);
             mostrar_arma_actual(p);
             pausar();
-        } else if (accion == 'P' || accion == 'p') {
+        } else if (accion == 'P') {
             ciclar_arma_anterior(p);
             mostrar_arma_actual(p);
             pausar();
-        } else if (accion == 'H' || accion == 'h') {
+        } else if (accion == 'H') {
             if (rand_entre(1, 100) <= 50) {
                 printf(AMARILLO "Logras escapar!\n" RESET);
                 pausar();
@@ -916,9 +970,15 @@ void tienda(Personaje *p, TablaHashArmas *th) {
         printf("4. Ver armas de la tienda\n");
         printf("5. Salir de la tienda\n\n");
         printf("Opcion: ");
-
-        scanf("%d", &opcion);
-        getchar();
+        int entrada_valida = 0;
+        while (!entrada_valida) {
+            if (scanf("%d", &opcion) == 1 && opcion >= 1 && opcion <= 5) {
+                entrada_valida = 1;
+            } else {
+                printf(ROJO "Opcion invalida. Elige 1-5: " RESET);
+            }
+            while(getchar() != '\n'); // limpiar buffer
+        }
 
         if (opcion == 1 && p->oro >= 20) {
             p->oro -= 20;
@@ -953,8 +1013,13 @@ void tienda(Personaje *p, TablaHashArmas *th) {
     printf("Opcion: ");
     {
         int opInv;
-        scanf("%d", &opInv);
-        getchar();
+        while(1){
+            scanf("%d", &opInv);
+            getchar();
+            if(opInv==1||opInv==2){
+                break;
+            }
+        }
         if (opInv == 1) {
             menu_inventario(p);
         }
@@ -1252,19 +1317,35 @@ void mostrar_inventario_hash(TablaHashArmas *th, Personaje *p) {
                 pausar();
                 continue;
             }
+            int ya_equipada = 0;
+            if (p->armas_equipadas != NULL) {
+                NodoArmaEquipada *check = p->armas_equipadas;
+                do{
+                    if(strcmp(check->arma.nombre, arma->nombre) == 0) {
+                        ya_equipada = 1;
+                        break;
+                    }
+                    check = check->siguiente;
+                } while (check != p->armas_equipadas);
+            }
 
             /* comprar: la agregamos al inventario y, si hay espacio, la equipamos */
             p->oro -= arma->precio;
-            agregar_arma_inventario(p, *arma);
+            Arma arma_nueva = *arma;
+    arma_nueva.usos = arma_nueva.usos_max; // IMPORTANTE: usos completos
+    agregar_arma_inventario(p, arma_nueva);
 
-            if (p->num_armas_equipadas < MAX_ARMAS_EQUIPADAS) {
-                insertar_arma_equipada(p, *arma);
-                printf(VERDE "Arma comprada y equipada.\n" RESET);
-            } else {
-                printf(VERDE "Arma comprada y guardada en la mochila.\n" RESET);
-                printf("Ve al inventario para equiparla.\n");
-            }
-            pausar();
+    if (p->num_armas_equipadas < MAX_ARMAS_EQUIPADAS && !ya_equipada) {
+        insertar_arma_equipada(p, arma_nueva);
+        printf(VERDE "Arma comprada y equipada.\n" RESET);
+    } else if (ya_equipada) {
+        printf(VERDE "Arma comprada y guardada en la mochila.\n" RESET);
+        printf(AMARILLO "Ya tienes %s equipada.\n" RESET, arma->nombre);
+    } else {
+        printf(VERDE "Arma comprada y guardada en la mochila.\n" RESET);
+        printf("Ve al inventario para equiparla.\n");
+    }
+    pausar();
         }
     }
 }
