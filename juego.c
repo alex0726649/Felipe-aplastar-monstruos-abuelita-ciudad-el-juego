@@ -1,7 +1,16 @@
 /*
-    Abismo de las Pesadillas - version simple y coloreada
-    Estilo combinado: estructuras del equipo + flujo mas sencillo.
+   Programación y Análisis de Algoritmos/ Estructura de datos
+   Profesor: Norma Leticia Méndez Mariscal
+   Proyecto final: Abismo de las pesadillas
+   Integrantes:
+   Osvaldo Hernández Juarez 385493
+   Luis Felipe Domínguez Chavez 385500
+   Diego Flores Verdad Grijalva 385660
+   Armando Velazquez Barroso 254106
+   José Alejandro Pérez Millán
+   26/11/2025 
 */
+
 
 #include <stdio.h>
 #include <stdlib.h>
